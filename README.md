@@ -93,6 +93,7 @@ Defaults are shown. Change them in `Config.detections`.
 | `freecam` | Camera far from the player | log |
 | `vision` | Night or thermal vision | off |
 | `blockedCommand` | A command from `Config.client.blockedCommands` | ban |
+| `exploit` | Another resource caught something only a cheat could do, like [fiveheists](https://github.com/1amZach/fiveheists) loot claimed from across the map | log |
 
 Teleports and speed only log by default, because spawn selectors, apartments and elevators all teleport. If your scripts call `allow` before they move a player, you can turn these up.
 

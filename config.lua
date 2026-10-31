@@ -67,6 +67,10 @@ Config.detections = {
     freecam            = { action = 'log' },
     vision             = false,
     blockedCommand     = { action = 'ban' },
+
+    -- Other resources reporting a player, like fiveheists catching loot claimed
+    -- from across the map. Logged so you can look before turning it up.
+    exploit            = { action = 'log' },
 }
 
 -- Fake server events nothing on your server uses. Cheat menus fire events

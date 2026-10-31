@@ -48,6 +48,7 @@ W.labels = {
     freecam = 'Freecam',
     vision = 'Night or thermal vision',
     blockedCommand = 'Cheat menu command',
+    exploit = 'Script exploit',
 }
 
 W.players = {}
