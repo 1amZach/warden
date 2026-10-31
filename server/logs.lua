@@ -47,15 +47,26 @@ local function webhook(embed, image)
     PerformHttpRequest(url, function() end, 'POST', body, { ['Content-Type'] = 'multipart/form-data; boundary=' .. boundary })
 end
 
--- One log line. `image` is a data URI from screenshot-basic.
-function W.log(title, description, color, image)
+-- The clip goes up as its own message right after the log, so it plays in
+-- Discord. fivecapture does the upload.
+local function postClip(title, clip)
+    local url = GetConvar('warden_webhook', '')
+    if url == '' or GetResourceState('fivecapture') ~= 'started' then return end
+    pcall(function() exports.fivecapture:upload(clip, { webhook = url, message = 'Clip: ' .. title }) end)
+end
+
+-- One log line. `image` is a screenshot as a data URI, `clip` the path of a
+-- video saved by fivecapture.
+function W.log(title, description, color, image, clip)
     print(('^3[warden]^7 %s: %s'):format(title, (description:gsub('%*', ''))))
+    if clip then print(('^3[warden]^7 clip saved: %s'):format(clip)) end
 
     if W.fivecord() then
-        local ok = pcall(function() exports.fivecord:log('anticheat', title, description, color, image) end)
+        local ok = pcall(function() exports.fivecord:log('anticheat', title, description, color, image, clip) end)
         if ok then return end
     end
     webhook({ title = title, description = description, color = color, timestamp = os.date('!%Y-%m-%dT%H:%M:%SZ') }, image)
+    if clip then postClip(title, clip) end
 end
 
 function W.describe(src, ids)

@@ -28,7 +28,7 @@ No dependencies. Works with any framework, or none.
 
 **Bans** cover the player's identifiers and hardware tokens. Someone who comes back on a new account from the same PC is refused, and the new account is added to the ban.
 
-**Screenshots** of the player's screen are attached to every kick and ban when screenshot-basic is running.
+**Screenshots** of the player's screen are attached to every kick and ban when fivecapture or screenshot-basic is running. With fivecapture you can also have a short **video clip** recorded before each kick or ban (`Config.clip`).
 
 Repeat detections are folded into one log line every 10 seconds, so a spamming cheat can't flood your log channel.
 
@@ -129,11 +129,11 @@ exports.warden:getBans() -- local bans, newest first
 exports.warden:unban(id, 'Zach')
 ```
 
-Every detection fires an event on the server, and every kick or ban another one with the screenshot:
+Every detection fires an event on the server, and every kick or ban another one with the screenshot and the clip's file path:
 
 ```lua
 AddEventHandler('warden:detected', function(source, kind, detail, action) end)
-AddEventHandler('warden:punished', function(source, action, kind, detail, name, license, image) end)
+AddEventHandler('warden:punished', function(source, action, kind, detail, name, license, image, clip) end)
 ```
 
 ## Addons
@@ -141,6 +141,7 @@ AddEventHandler('warden:punished', function(source, action, kind, detail, name, 
 - [fivecord](https://github.com/1amZach/fivecord): when it's running, warden bans through it and logs to its `anticheat` channel with the screenshot. Bans then show up in `/bans` and `/lookup`, and fivecord's `/teleport` tells warden the move was on purpose. warden works the same without it.
 - [fiveadmin](https://github.com/1amZach/fiveadmin): an in-game admin menu. It tells warden before staff noclip, spectate, teleport or spawn things, so they never get flagged.
 - [fivepanel](https://github.com/1amZach/fivepanel): a web admin panel with a live feed of detections, their screenshots, and one-click bans.
+- [fivecapture](https://github.com/1amZach/fivecapture): screenshots without screenshot-basic, and video clips. Set `Config.clip` to the seconds to record before a kick or ban; the player stays on the server while it records. The clip is attached to the log, through fivecord or as its own message on the webhook, and shows in fivepanel.
 - [fivelog](https://github.com/1amZach/fivelog): kick and ban logs show the player's last few actions before it happened, like kills, damage and items. Set how many with `Config.history`.
 
 ## Testing

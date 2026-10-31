@@ -1,22 +1,61 @@
 local W = Warden
 
-function W.screenshot(src, cb)
-    if not Config.screenshots or GetResourceState('screenshot-basic') ~= 'started' then return cb() end
+local function capturing() return GetResourceState('fivecapture') == 'started' end
 
+-- Calls back once with whatever came, or with nothing after `wait` ms.
+local function once(wait, cb)
     local done = false
-    local function finish(image)
+    local function finish(...)
         if done then return end
         done = true
-        cb(image)
+        cb(...)
     end
+    SetTimeout(wait, finish)
+    return finish
+end
 
-    SetTimeout(8000, finish)
+function W.screenshot(src, cb)
+    if not Config.screenshots then return cb() end
+    local finish = once(8000, cb)
     local ok = pcall(function()
-        exports['screenshot-basic']:requestClientScreenshot(src, { encoding = 'jpg', quality = 0.8 }, function(err, data)
-            finish(not err and type(data) == 'string' and data or nil)
+        if capturing() then
+            exports.fivecapture:screenshot(src, { encoding = 'jpg', quality = 0.8 }, function(err, r)
+                finish(not err and r and r.data or nil)
+            end)
+        elseif GetResourceState('screenshot-basic') == 'started' then
+            exports['screenshot-basic']:requestClientScreenshot(src, { encoding = 'jpg', quality = 0.8 }, function(err, data)
+                finish(not err and type(data) == 'string' and data or nil)
+            end)
+        else
+            finish()
+        end
+    end)
+    if not ok then finish() end
+end
+
+-- A video of the player's screen, saved by fivecapture. Calls back with its
+-- file path, or nothing.
+function W.clip(src, cb)
+    local seconds = Config.clip or 0
+    if seconds <= 0 or not capturing() then return cb() end
+    local finish = once((seconds + 30) * 1000, cb)
+    local ok = pcall(function()
+        exports.fivecapture:record(src, seconds, { save = true }, function(err, r)
+            finish(not err and r and r.file or nil)
         end)
     end)
     if not ok then finish() end
+end
+
+-- Screenshot and clip together, so the clip doesn't add the screenshot's wait.
+function W.evidence(src, cb)
+    local image, clip, left = nil, nil, 2
+    local function one()
+        left = left - 1
+        if left == 0 then cb(image, clip) end
+    end
+    W.screenshot(src, function(i) image = i; one() end)
+    W.clip(src, function(c) clip = c; one() end)
 end
 
 local function ban(src, ids, reason, detail)
@@ -39,7 +78,7 @@ function W.punish(src, action, kind, detail)
     local history = W.history(src) -- before they're dropped and fivelog forgets them
     local reason = 'Anticheat: ' .. (W.labels[kind] or kind)
 
-    W.screenshot(src, function(image)
+    W.evidence(src, function(image, clip)
         local lines = { W.describe(src, ids) }
         if detail then lines[#lines + 1] = detail end
         if history then lines[#lines + 1] = history end
@@ -62,8 +101,8 @@ function W.punish(src, action, kind, detail)
             DropPlayer(src, Config.kickMessage)
         end
 
-        W.log(('%s · %s'):format(title, W.labels[kind] or kind), table.concat(lines, '\n'), W.colors[action], image)
-        TriggerEvent('warden:punished', src, action, kind, detail, ids.name, ids.license, image)
+        W.log(('%s · %s'):format(title, W.labels[kind] or kind), table.concat(lines, '\n'), W.colors[action], image, clip)
+        TriggerEvent('warden:punished', src, action, kind, detail, ids.name, ids.license, image, clip)
         W.notifyStaff(('%s %s: %s'):format(ids.name, action == 'ban' and 'banned' or 'kicked', W.labels[kind] or kind))
     end)
 end

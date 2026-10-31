@@ -21,8 +21,14 @@ Config.banLength = 0
 Config.appeal = 'discord.gg/yourserver'
 Config.kickMessage = 'You were kicked by the anticheat. If you think this is a mistake, contact staff.'
 
--- Grab the player's screen before a kick or ban. Needs screenshot-basic.
+-- Grab the player's screen before a kick or ban. Needs fivecapture or
+-- screenshot-basic.
 Config.screenshots = true
+
+-- Seconds of video to record before a kick or ban, 0 for none. Needs
+-- fivecapture. The player stays on the server while it records, so keep it
+-- short; 10 is plenty to see what a menu was doing.
+Config.clip = 0
 
 -- With fivelog running, kick and ban logs show this many of the player's last
 -- logged actions, like kills, damage and items. 0 for none.

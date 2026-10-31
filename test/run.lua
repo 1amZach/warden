@@ -124,18 +124,25 @@ local logged = {}
 function print(...) logged[#logged + 1] = table.concat({ ... }, ' ') end
 local realPrint = _G.io.write
 
-local registered, fivecord, screenshotData = {}, {}, nil
+local registered, fivecord, screenshotData, capture = {}, {}, nil, {}
 exports = setmetatable({}, {
     __call = function(_, name, fn) registered[name] = fn end,
     __index = function(_, res)
         if res == 'fivecord' then
             return {
                 ban = function(_, src, reason, seconds, by) fivecord[#fivecord + 1] = { kind = 'ban', src = src, reason = reason, by = by }; return true end,
-                log = function(_, kind, title, desc, color, image) fivecord[#fivecord + 1] = { kind = 'log', title = title, desc = desc, image = image } end,
+                log = function(_, kind, title, desc, color, image, clip) fivecord[#fivecord + 1] = { kind = 'log', title = title, desc = desc, image = image, clip = clip } end,
             }
         end
         if res == 'fivelog' then
             return { recent = function(_, src, n) return { { at = 1700000000, text = 'Al hit Bob_ 2 times' }, { at = 1700000005, text = 'Al killed Bob' } } end }
+        end
+        if res == 'fivecapture' then
+            return {
+                screenshot = function(_, src, opts, cb) capture[#capture + 1] = { 'screenshot', src }; cb(false, { data = 'data:image/jpeg;base64,/9j/CAP' }) end,
+                record = function(_, src, seconds, opts, cb) capture[#capture + 1] = { 'record', src, seconds, opts.save }; cb(false, { file = '/srv/captures/clip.webm' }) end,
+                upload = function(_, file, opts) capture[#capture + 1] = { 'upload', file, opts.webhook, opts.message } end,
+            }
         end
         if res == 'screenshot-basic' then
             return { requestClientScreenshot = function(_, src, opts, cb) cb(false, screenshotData) end }
@@ -374,6 +381,40 @@ do -- through fivecord, with a screenshot
     local req = http[#http]
     check('screenshot sent as multipart', req.headers['Content-Type']:find('multipart') and req.body:find('screenshot.jpg', 1, true))
     check('jpeg bytes decoded', req.body:find('\255\216\255\224', 1, true))
+    Config.screenshots = false
+end
+
+do -- fivecapture: screenshot and clip
+    started.fivecapture = 'started'
+    started['screenshot-basic'] = nil
+    Config.screenshots, Config.clip = true, 8
+    started.fivecord = 'started'
+    addPlayer(30, 'Clipped')
+    fire('admin:server:setGroup', 30)
+    local l = fivecord[#fivecord]
+    check('screenshot comes from fivecapture', l.image == 'data:image/jpeg;base64,/9j/CAP')
+    check('clip recorded for the configured seconds and saved', capture[2] and capture[2][1] == 'record' and capture[2][2] == 30 and capture[2][3] == 8 and capture[2][4] == true)
+    check('fivecord log gets the clip file', l.clip == '/srv/captures/clip.webm')
+    local p = triggered[#triggered]
+    for i = #triggered, 1, -1 do if triggered[i].name == 'warden:punished' then p = triggered[i] break end end
+    check('punished event carries the clip', p.args[8] == '/srv/captures/clip.webm')
+    runTimers()
+    started.fivecord = nil
+
+    local n = #capture
+    addPlayer(31, 'Hooked')
+    fire('admin:server:setGroup', 31)
+    local up = capture[#capture]
+    check('without fivecord the clip goes to the webhook', up[1] == 'upload' and up[2] == '/srv/captures/clip.webm' and up[3] == 'https://discord.test/hook' and up[4]:find('Ban'))
+    check('screenshot still in the webhook log', http[#http].body:find('screenshot.jpg', 1, true))
+
+    Config.clip = 0
+    n = #capture
+    addPlayer(32, 'NoClip')
+    fire('admin:server:setGroup', 32)
+    check('clip 0 records nothing', capture[n + 1][1] == 'screenshot' and capture[n + 2] == nil)
+
+    started.fivecapture = nil
     Config.screenshots = false
 end
 
