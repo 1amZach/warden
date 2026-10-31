@@ -79,6 +79,19 @@ exports('getStrikes', function(src)
     for kind, hits in pairs(p and p.strikes or {}) do out[kind] = #hits end
     return out
 end)
+exports('getBans', function()
+    local out = {}
+    for i = #W.bans.list, 1, -1 do
+        local b = W.bans.list[i]
+        out[#out + 1] = { id = b.id, name = b.name, reason = b.reason, detail = b.detail, created = b.created, expires = b.expires }
+    end
+    return out
+end)
+exports('unban', function(id, by)
+    local b = W.bans.remove(tonumber(id))
+    if b then W.log('Unbanned', ('Ban **#%d** on **%s** lifted by **%s**'):format(b.id, b.name, by or 'another resource'), 0x30A46C) end
+    return b ~= nil
+end)
 exports('isBanned', function(identifier)
     return W.bans.find({ identifier }, {}) ~= nil
 end)

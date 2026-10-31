@@ -123,15 +123,22 @@ exports.warden:getStrikes(source) -- { teleport = 1, ... }
 exports.warden:isBanned('license:...')
 ```
 
-Every detection fires an event on the server:
+```lua
+exports.warden:getBans() -- local bans, newest first
+exports.warden:unban(id, 'Zach')
+```
+
+Every detection fires an event on the server, and every kick or ban another one with the screenshot:
 
 ```lua
 AddEventHandler('warden:detected', function(source, kind, detail, action) end)
+AddEventHandler('warden:punished', function(source, action, kind, detail, name, license, image) end)
 ```
 
 ## Addons
 
 - [fivecord](https://github.com/1amZach/fivecord): when it's running, warden bans through it and logs to its `anticheat` channel with the screenshot. Bans then show up in `/bans` and `/lookup`, and fivecord's `/teleport` tells warden the move was on purpose. warden works the same without it.
+- [fivepanel](https://github.com/1amZach/fivepanel): a web admin panel with a live feed of detections, their screenshots, and one-click bans.
 
 ## Testing
 

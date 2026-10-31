@@ -60,6 +60,7 @@ function W.punish(src, action, kind, detail)
         end
 
         W.log(('%s · %s'):format(title, W.labels[kind] or kind), table.concat(lines, '\n'), W.colors[action], image)
+        TriggerEvent('warden:punished', src, action, kind, detail, ids.name, ids.license, image)
         W.notifyStaff(('%s %s: %s'):format(ids.name, action == 'ban' and 'banned' or 'kicked', W.labels[kind] or kind))
     end)
 end

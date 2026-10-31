@@ -158,10 +158,12 @@ do -- honeypot bans locally, kicks with the ban screen and saves
     fire('esx:giveMoneyToPlayer', 1)
     check('honeypot drops player', dropped[#dropped].src == 1)
     check('ban screen shows id and appeal', dropped[#dropped].reason:find('Ban #1') and dropped[#dropped].reason:find('yourserver'))
+    local p = triggered[#triggered]
+    check('punished event carries name and license', p.name == 'warden:punished' and p.args[5] == 'Cheater' and p.args[6] == 'license:cheater')
     check('ban saved to bans.json', json.decode(files['bans.json']).bans[1].name == 'Cheater')
     check('ip not stored with the ban', not table.concat(W.bans.list[1].identifiers, ' '):find('ip:'))
     check('ban logged to webhook', lastLog().embeds[1].title:find('Ban #1'))
-    check('detected event fired', triggered[#triggered].name == 'warden:detected' and triggered[#triggered].args[4] == 'ban')
+    check('detected event fired', triggered[#triggered - 1].name == 'warden:detected' and triggered[#triggered - 1].args[4] == 'ban')
 end
 
 do -- new account on the same PC is refused and remembered
@@ -387,6 +389,9 @@ do -- commands and exports
     registered.flag(20, 'freecam', 'from another resource')
     check('getStrikes', registered.getStrikes(20).freecam == 1)
     check('isBanned', registered.isBanned('license:injector') and not registered.isBanned('license:nobody'))
+    local list = registered.getBans()
+    check('getBans newest first without tokens', list[1].id > list[#list].id and list[1].tokens == nil)
+    check('unban export', registered.unban(list[1].id, 'panel') and not registered.unban(list[1].id))
 end
 
 realPrint(('%d passed, %d failed\n'):format(passed, failed))
