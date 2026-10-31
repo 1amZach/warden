@@ -24,6 +24,10 @@ Config.kickMessage = 'You were kicked by the anticheat. If you think this is a m
 -- Grab the player's screen before a kick or ban. Needs screenshot-basic.
 Config.screenshots = true
 
+-- With fivelog running, kick and ban logs show this many of the player's last
+-- logged actions, like kills, damage and items. 0 for none.
+Config.history = 5
+
 -- What each detection does.
 --   action   'ban', 'kick', 'log', or false to turn it off
 --   strikes  how many times it has to happen within `window` seconds before

@@ -64,6 +64,19 @@ function W.describe(src, ids)
     return ('**%s** (id %d)%s\n`%s`'):format(ids.name, src, discord, ids.license or ids.identifiers[1] or 'no license')
 end
 
+-- What the player did just before, from fivelog.
+function W.history(src)
+    if (Config.history or 0) <= 0 or GetResourceState('fivelog') ~= 'started' then return end
+    local ok, list = pcall(function() return exports.fivelog:recent(src, Config.history) end)
+    if not ok or type(list) ~= 'table' or #list == 0 then return end
+    local out = { '**Just before**' }
+    for _, e in ipairs(list) do
+        local text = tostring(e.text):gsub('[*_`~|]', '\\%0')
+        out[#out + 1] = ('<t:%d:T> %s'):format(tonumber(e.at) or 0, text:sub(1, 150))
+    end
+    return table.concat(out, '\n')
+end
+
 local function notifyStaff(text)
     for _, id in ipairs(GetPlayers()) do
         if IsPlayerAceAllowed(id, Config.notifyAce) then

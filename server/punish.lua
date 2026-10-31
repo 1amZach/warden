@@ -36,10 +36,13 @@ function W.punish(src, action, kind, detail)
     p.gone = true
 
     local ids = W.identity(src)
+    local history = W.history(src) -- before they're dropped and fivelog forgets them
     local reason = 'Anticheat: ' .. (W.labels[kind] or kind)
 
     W.screenshot(src, function(image)
-        local lines = { W.describe(src, ids), detail }
+        local lines = { W.describe(src, ids) }
+        if detail then lines[#lines + 1] = detail end
+        if history then lines[#lines + 1] = history end
         local title
 
         if action == 'ban' then

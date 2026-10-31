@@ -134,6 +134,9 @@ exports = setmetatable({}, {
                 log = function(_, kind, title, desc, color, image) fivecord[#fivecord + 1] = { kind = 'log', title = title, desc = desc, image = image } end,
             }
         end
+        if res == 'fivelog' then
+            return { recent = function(_, src, n) return { { at = 1700000000, text = 'Al hit Bob_ 2 times' }, { at = 1700000005, text = 'Al killed Bob' } } end }
+        end
         if res == 'screenshot-basic' then
             return { requestClientScreenshot = function(_, src, opts, cb) cb(false, screenshotData) end }
         end
@@ -392,6 +395,20 @@ do -- commands and exports
     local list = registered.getBans()
     check('getBans newest first without tokens', list[1].id > list[#list].id and list[1].tokens == nil)
     check('unban export', registered.unban(list[1].id, 'panel') and not registered.unban(list[1].id))
+end
+
+do -- recent fivelog lines on a kick
+    started.fivelog = 'started'
+    addPlayer(21, 'Logged')
+    W.punish(21, 'kick', 'noclip', 'Flying')
+    local d = lastLog().embeds[1].description
+    check('history in kick log', d:find('Just before', 1, true) and d:find('<t:1700000005:T> Al killed Bob', 1, true))
+    check('history escaped', d:find('Bob\\_', 1, true))
+    started.fivelog = nil
+    Config.history = 0
+    addPlayer(22, 'Plain')
+    W.punish(22, 'kick', 'noclip', 'Flying')
+    check('no history when off', not lastLog().embeds[1].description:find('Just before', 1, true))
 end
 
 realPrint(('%d passed, %d failed\n'):format(passed, failed))
