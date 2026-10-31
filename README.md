@@ -138,6 +138,7 @@ AddEventHandler('warden:punished', function(source, action, kind, detail, name, 
 ## Addons
 
 - [fivecord](https://github.com/1amZach/fivecord): when it's running, warden bans through it and logs to its `anticheat` channel with the screenshot. Bans then show up in `/bans` and `/lookup`, and fivecord's `/teleport` tells warden the move was on purpose. warden works the same without it.
+- [fiveadmin](https://github.com/1amZach/fiveadmin): an in-game admin menu. It tells warden before staff noclip, spectate, teleport or spawn things, so they never get flagged.
 - [fivepanel](https://github.com/1amZach/fivepanel): a web admin panel with a live feed of detections, their screenshots, and one-click bans.
 
 ## Testing
